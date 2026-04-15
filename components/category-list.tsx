@@ -33,16 +33,16 @@ export const CategoryList = ({
   const [visibleCount, setVisibleCount] = useState(4);
 
   return (
-    <div className={cn("w-full bg-background text-foreground p-8", className)}>
+    <div className={cn("w-full bg-background text-foreground px-4 py-8 md:p-8", className)}>
       <div className="max-w-4xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-8 md:mb-16">
           {headerIcon && (
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary/80 to-primary mb-6 text-primary-foreground">
               {headerIcon}
             </div>
           )}
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">{title}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 tracking-tight">{title}</h1>
           {subtitle && (
             <p className="text-base text-muted-foreground mt-3">{subtitle}</p>
           )}
@@ -82,8 +82,8 @@ export const CategoryList = ({
 
                 {/* Content */}
                 <div className={cn(
-                  "flex items-start justify-between gap-6 px-7 md:px-9 transition-all duration-300",
-                  hoveredItem === category.id ? 'py-8' : 'py-5'
+                  "flex items-start justify-between gap-3 md:gap-6 px-5 md:px-9 transition-all duration-300",
+                  hoveredItem === category.id ? 'py-7 md:py-8' : 'py-4 md:py-5'
                 )}>
                   <div className="flex-1 min-w-0">
                     <div className="mb-1">
@@ -128,7 +128,7 @@ export const CategoryList = ({
 
                   {/* Category type badge */}
                   {category.categoryType && (
-                    <div className="ml-4 shrink-0 px-3 py-1.5 rounded-full border border-border bg-muted text-xs font-medium text-muted-foreground select-none pointer-events-none">
+                    <div className="shrink-0 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-border bg-muted text-[11px] md:text-xs font-medium text-muted-foreground select-none pointer-events-none">
                       {category.categoryType}
                     </div>
                   )}
