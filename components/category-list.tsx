@@ -42,9 +42,9 @@ export const CategoryList = ({
               {headerIcon}
             </div>
           )}
-          <h1 className="text-lg sm:text-4xl md:text-5xl font-bold mb-2 tracking-tight whitespace-nowrap">{title}</h1>
+          <h1 className="text-xl sm:text-4xl md:text-5xl font-bold mb-2 tracking-tight whitespace-nowrap">{title}</h1>
           {subtitle && (
-            <p className="text-base text-muted-foreground mt-3">{subtitle}</p>
+            <p className="text-sm sm:text-base text-muted-foreground mt-3">{subtitle}</p>
           )}
         </div>
 
