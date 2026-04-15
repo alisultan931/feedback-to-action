@@ -12,6 +12,7 @@ export interface Category {
   onClick?: () => void;
   featured?: boolean;
   categoryType?: string;
+  status?: 'Accept' | 'Reject';
 }
 
 // Define the props for the CategoryList component
@@ -34,10 +35,16 @@ export const CategoryList = ({
   const [visibleCount, setVisibleCount] = useState(4);
   const [categories, setCategories] = useState(initialCategories);
   const [pendingId, setPendingId] = useState<string | number | null>(null);
+  const [acceptedIds, setAcceptedIds] = useState<Set<string | number>>(
+    () => new Set(initialCategories.filter((c) => c.status === 'Accept').map((c) => c.id))
+  );
+  const [rejectingIds, setRejectingIds] = useState<Set<string | number>>(new Set());
   const [, startTransition] = useTransition();
 
   const handleAccept = (id: string | number) => {
     setPendingId(id);
+    setAcceptedIds((prev) => new Set(prev).add(id));
+    setHoveredItem(null);
     startTransition(async () => {
       await updateCardStatus(String(id), 'Accept');
       setPendingId(null);
@@ -45,12 +52,15 @@ export const CategoryList = ({
   };
 
   const handleReject = (id: string | number) => {
-    // Optimistically remove the card immediately
-    setCategories((prev) => prev.filter((c) => c.id !== id));
     if (hoveredItem === id) setHoveredItem(null);
-    startTransition(async () => {
-      await updateCardStatus(String(id), 'Reject');
-    });
+    setRejectingIds((prev) => new Set(prev).add(id));
+    setTimeout(() => {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      setRejectingIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+      startTransition(async () => {
+        await updateCardStatus(String(id), 'Reject');
+      });
+    }, 420);
   };
 
   return (
@@ -74,21 +84,33 @@ export const CategoryList = ({
           {categories.slice(0, visibleCount).map((category) => {
             const isHovered = hoveredItem === category.id;
             const isPending = pendingId === category.id;
+            const isAccepted = acceptedIds.has(category.id);
+            const isRejecting = rejectingIds.has(category.id);
 
             return (
               <div
                 key={category.id}
                 className="relative group"
-                onMouseEnter={() => setHoveredItem(category.id)}
+                style={{
+                  transform: isRejecting ? 'translateX(-80px)' : 'translateX(0)',
+                  opacity: isRejecting ? 0 : 1,
+                  transition: 'transform 380ms cubic-bezier(0.4, 0, 0.6, 1), opacity 280ms ease',
+                  pointerEvents: isRejecting ? 'none' : 'auto',
+                }}
+                onMouseEnter={() => !isRejecting && setHoveredItem(category.id)}
                 onMouseLeave={() => setHoveredItem(null)}
-                onClick={category.onClick}
+                onClick={!isRejecting ? category.onClick : undefined}
               >
                 <div
                   className={cn(
-                    "relative overflow-hidden border bg-card transition-all duration-300 ease-in-out cursor-pointer",
-                    isHovered
-                      ? 'border-primary shadow-lg shadow-primary/20 bg-primary/5'
-                      : 'border-border hover:border-primary/50'
+                    "relative overflow-hidden border bg-card transition-[border-color,box-shadow,background-color] duration-150 ease-out cursor-pointer",
+                    isRejecting
+                      ? 'border-rose-500 bg-rose-500/5'
+                      : isAccepted
+                        ? 'border-emerald-500 shadow-lg shadow-emerald-500/20'
+                        : isHovered
+                          ? 'border-primary shadow-lg shadow-primary/20 bg-primary/5'
+                          : 'border-border hover:border-primary/50'
                   )}
                 >
                   {/* Corner brackets that appear on hover */}
@@ -107,7 +129,7 @@ export const CategoryList = ({
 
                   {/* Content */}
                   <div className={cn(
-                    "flex items-start justify-between gap-3 md:gap-6 px-5 md:px-9 transition-all duration-300",
+                    "flex items-start justify-between gap-3 md:gap-6 px-5 md:px-9 transition-[padding] duration-150 ease-out",
                     isHovered ? 'py-7 md:py-8' : 'py-4 md:py-5'
                   )}>
                     <div className="flex-1 min-w-0">
@@ -118,7 +140,7 @@ export const CategoryList = ({
                       </div>
                       <h3
                         className={cn(
-                          "font-semibold leading-snug tracking-tight transition-colors duration-300",
+                          "font-semibold leading-snug tracking-tight transition-colors duration-150",
                           category.featured ? 'text-xl md:text-2xl' : 'text-lg md:text-xl',
                           isHovered ? 'text-primary' : 'text-foreground'
                         )}
@@ -134,7 +156,7 @@ export const CategoryList = ({
                           </div>
                           <p
                             className={cn(
-                              "text-sm leading-relaxed transition-colors duration-300",
+                              "text-sm leading-relaxed transition-colors duration-150",
                               isHovered ? 'text-foreground/70' : 'text-muted-foreground'
                             )}
                           >
@@ -146,7 +168,18 @@ export const CategoryList = ({
 
                     {/* Right side: Accept/Reject buttons on hover, or category badge */}
                     <div className="shrink-0 flex items-center gap-2">
-                      {isHovered ? (
+                      {isAccepted ? (
+                        <>
+                          {category.categoryType && (
+                            <div className="px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border border-border bg-muted text-[11px] md:text-xs font-medium text-muted-foreground select-none pointer-events-none">
+                              {category.categoryType}
+                            </div>
+                          )}
+                          <div className="px-3 py-1.5 text-xs font-semibold border border-emerald-500 text-emerald-600 bg-emerald-500/10 select-none">
+                            Accepted ✓
+                          </div>
+                        </>
+                      ) : isHovered ? (
                         <>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleAccept(category.id); }}

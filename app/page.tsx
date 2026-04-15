@@ -9,6 +9,7 @@ export default async function Page() {
     title: `Heard: ${record.fields.Feedback ?? ''}`,
     subtitle: record.fields.Action ? `Did: ${record.fields.Action}` : undefined,
     categoryType: record.fields.Type,
+    status: record.fields['Accept/Reject'],
   }));
 
   return (
