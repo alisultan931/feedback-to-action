@@ -3,6 +3,7 @@ export interface AirtableFields {
   Action?: string;
   Type?: string;
   'Activate for Website?'?: boolean;
+  'Accept/Reject'?: 'Accept' | 'Reject';
 }
 
 export interface AirtableRecord {
